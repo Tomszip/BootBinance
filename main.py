@@ -1,10 +1,15 @@
 from services.market_data import get_btc_price
 from services.market_data import get_klines
-from services.indicators import add_ema, check_signal, add_rsi
+from services.indicators import add_ema, add_rsi
+from services.paper_wallet import PaperWallet
+from strategies.sma_strategy import check_signal
 import time
 
 
+wallet = PaperWallet()
+
 while True:
+
     df = get_klines()
 
     df = add_ema(df)
@@ -26,6 +31,19 @@ while True:
     print(f"RSI: {last_row['RSI']:.2f}")
 
     print(f"SEÑAL: {signal}")
+
+    if signal == "CRUCE ALCISTA CONFIRMADO - COMPRA":
+    
+        wallet.buy(
+            price=last_row["close"], 
+            usdt_amount=100
+        )
+
+    elif signal == "CRUCE BAJISTA CONFIRMADO - VENTA":
+        
+        wallet.sell(
+            price=last_row["close"]
+        )
 
     time.sleep(5)
 
