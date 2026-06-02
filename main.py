@@ -3,55 +3,81 @@ from services.market_data import get_klines
 from services.indicators import add_ema, add_rsi
 from services.paper_wallet import PaperWallet
 from strategies.sma_strategy import check_signal
+from services.database import create_tables
 import time
 
 
 wallet = PaperWallet()
 
+create_tables()
+
 while True:
 
-    df = get_klines()
+    try:
+        df = get_klines()
 
-    df = add_ema(df)
+        df = add_ema(df)
 
-    df = add_rsi(df)
+        df = add_rsi(df)
 
-    signal = check_signal(df)
+        signal = check_signal(df)
 
-    last_row = df.iloc[-1]
+        last_row = df.iloc[-2]
 
-    print("\n=================================================")
+        print("\n=================================================")
 
-    print(f"Precio actual: {last_row['close']}")
+        print(f"Precio actual: {last_row['close']}")
 
-    print(f"EMA9: {last_row['EMA9']:.2f}")
+        print(f"EMA9: {last_row['EMA9']:.2f}")
 
-    print(f"EMA21: {last_row['EMA21']:.2f}")
+        print(f"EMA21: {last_row['EMA21']:.2f}")
 
-    print(f"RSI: {last_row['RSI']:.2f}")
+        print(f"RSI: {last_row['RSI']:.2f}")
 
-    print(f"SEÑAL: {signal}")
+        print(f"SEÑAL: {signal}")
 
-    if signal == "CRUCE ALCISTA CONFIRMADO - COMPRA":
-    
-        wallet.buy(
-            price=last_row["close"], 
-            usdt_amount=100
-        )
-
-    elif signal == "CRUCE BAJISTA CONFIRMADO - VENTA":
+        if signal == "CRUCE ALCISTA CONFIRMADO - COMPRA":
         
-        wallet.sell(
-            price=last_row["close"]
-        )
+            wallet.buy(
+                price=last_row["close"], 
+                usdt_amount=100
+            )
 
-    time.sleep(5)
+        elif signal == "CRUCE BAJISTA CONFIRMADO - VENTA":
+            
+            wallet.sell(
+                price=last_row["close"]
+            )
 
-    #print(df[["close", "EMA9", "EMA21"]].tail())
+        if wallet.in_position and last_row["close"] <= wallet.stop_loss_price:
 
-    #print(f"\nSEÑAL ACTUAL: {signal}")
+            print("\nSTOP LOSS ACTIVADO")
 
-    #print(df[["open", "high", "low", "close", "volume"]].tail())
+            wallet.sell(
+                price=last_row["close"]
+            )
+
+        if wallet.in_position and last_row["close"] >= wallet.take_profit_price:
+
+            print("\nTAKE PROFIT ACTIVADO")
+
+            wallet.sell(
+                price=last_row["close"]
+            )
+
+        time.sleep(60)
+    
+    except Exception as e:
+
+        print(f"\nERROR EN EL BOT: {e}")
+
+        time.sleep(10)
+
+        #print(df[["close", "EMA9", "EMA21"]].tail())
+
+        #print(f"\nSEÑAL ACTUAL: {signal}")
+
+        #print(df[["open", "high", "low", "close", "volume"]].tail())
 
 
 

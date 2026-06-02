@@ -2,9 +2,9 @@
 
 def check_signal(df):
 
-    previous_row = df.iloc[-2]
+    previous_row = df.iloc[-3]
 
-    last_row = df.iloc[-1]
+    last_row = df.iloc[-2]
 
     previous_ema9 = previous_row["EMA9"]
     previous_ema21 = previous_row["EMA21"]
